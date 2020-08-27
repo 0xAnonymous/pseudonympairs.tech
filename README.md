@@ -15,6 +15,8 @@ Verification in the pairs requires both people to verify one another. The system
 
 # Attack vectors
 
-The only attack vector is collusion attacks. They scale with an inverse square relationship, and the payoff is minimal unless a significant part of the population colludes. The pairs the colluders gains control of can be calculated with how many pairs they get majority in (both people in. ) Mathematically this is (colluders)/(population)^2, based on probability theory. The colluders control these pairs without a human appearing in event, which means they can simultaneously be verified at the border with the people assigned to those pairs.
+The only problematic attack vector is collusion attacks. It cannot be fully prevented, and the protocol assumes some minor collusion attacks will be a constant factor. They scale with an inverse square relationship, and the payoff is minimal unless a significant part of the population colludes. The pairs the colluders gains control of can be calculated with how many pairs they get majority in (both people in. ) Mathematically this is (colluders)/(population)^2, based on probability theory. The colluders control these pairs without a human appearing in event, which means they can simultaneously be verified at the border with the people assigned to those pairs.
 
 The bots controlled and overall people that are free to be verified at the border increases slightly with repeated attacks, but there is less and less increase for each round. The benefit of repeated attacks can be calculated with the recursive sequence bots_n = ((colluders + population * bots_{n-1})/(population + population * bots_{n-1}))^2 and it plateaus very close to (colluders/population)^2.
+
+Then, there is the perfectly defendeable attack vector "man in the middle attack". This attack requires a defense protocol. There are many approaches and the attack vector can be defended entirely.
