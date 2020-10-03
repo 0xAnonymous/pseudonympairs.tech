@@ -148,13 +148,13 @@ contract Polytopia {
         balanceOf[_t+period*2][Token.Registration][msg.sender]++;
         registry[_t][msg.sender].verified = true;
     }
-    function completeVerificationCourt() public {
+    function courtVerified() public {
         uint _t = t(-2); require(registry[_t][msg.sender].rank == Rank.Court);
         uint _court = registry[_t][msg.sender].id;
         require(court[_t][_court][0] == true && court[_t][_court][1] == true);
         _completeVerification(_t, _court%pseudonymIndex[_t].length/2);
     }
-    function completeVerificationPseudonym() public {
+    function pseudonymVerified() public {
         uint _t = t(-2); require(registry[_t][msg.sender].rank == Rank.Pseudonym);
         _completeVerification(_t, registry[_t][msg.sender].id/2);
     }
