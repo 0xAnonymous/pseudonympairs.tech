@@ -1,10 +1,10 @@
 contract Polytopia {
 
-    uint constant period = 4 weeks;
-    uint constant genesis = 198000;
+    uint constant public period = 4 weeks;
+    uint constant public genesis = 1599894000;
 
-    uint constant rngvote = 2 weeks;
-    uint constant randomize = 3 weeks;
+    uint constant public rngvote = 2 weeks;
+    uint constant public randomize = 3 weeks;
 
     function schedule() public view returns (uint) { return genesis + ((block.timestamp - genesis) / period) * period; }
     function t(int _periods) public view returns (uint) { return schedule() + uint(_periods)*period; }
