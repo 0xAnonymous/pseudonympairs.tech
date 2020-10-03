@@ -104,7 +104,7 @@ contract Polytopia {
         balanceOf[_t][Token.Immigration][msg.sender]--;
         registry[_t][msg.sender].id = courts[_t];
         courtIndex[_t][courts[_t]] = msg.sender;
-        balanceOf[_t][Token.Immigration][pseudonymIndex[_t-period*2][courts[_t]%pseudonymIndex[_t-period].length]]++;
+        balanceOf[_t][Token.Immigration][pseudonymIndex[_t-period*2][courts[_t]%pseudonymIndex[_t-period*2].length]]++;
         courts[_t]++;
         registry[_t][msg.sender].rank = Rank.Court;
     }
