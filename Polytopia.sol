@@ -189,7 +189,9 @@ contract Polytopia {
         balanceOf[_t][_token][_from] -= _value;
         balanceOf[_t][_token][_to] += _value;        
     }
-    function transfer(address _to, uint _value, Token _token) public { _transfer(schedule(), msg.sender, _to, _value, _token); }    
+    function transfer(address _to, uint _value, Token _token) public {
+        _transfer(schedule(), msg.sender, _to, _value, _token);
+    }
     function approve(address _spender, uint _value, Token _token) public {
         allowed[schedule()][_token][msg.sender][_spender] = _value;
     }
