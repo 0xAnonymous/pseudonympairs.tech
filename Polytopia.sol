@@ -164,7 +164,7 @@ contract Polytopia {
         require(_account != _signer);
         Rank rank = registry[_t][_account].rank;
         uint unit = registry[_t][_account].id/(1+uint(rank));
-        uint pair = unit%registered[_t][Rank.Pair]/2;
+        uint pair = unit%(registered[_t][Rank.Pair]/2);
         require(disputed[_t][pair] == false);
         uint peer = registry[_t][_signer].id;
         require(pair == peer/2);
