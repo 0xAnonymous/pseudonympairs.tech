@@ -172,20 +172,16 @@ contract Polytopia {
     }
     function verify(address _account) public { _verify(_account, msg.sender, t(-2)); }
 
-    function msgHash(address _account, uint _t) internal pure returns (bytes32) { return keccak256(abi.encodePacked(_account, _t+period*2)); }
+    function msgHash(uint _t) internal view returns (bytes32) { return keccak256(abi.encodePacked(msg.sender, _t+period*2)); }
 
     function uploadSignature(bytes32 r, bytes32 s, uint8 v) public {
-        uint _t = t(-2); _verify(msg.sender, ecrecover(msgHash(msg.sender, _t), v, r, s), _t);
+        uint _t = t(-2); _verify(msg.sender, ecrecover(msgHash(_t), v, r, s), _t);
     }
     function courtSignature(bytes32[2] memory r, bytes32[2] memory s, uint8[2] memory v) public {
-        uint _t = t(-2); bytes32 _msgHash = msgHash(msg.sender, _t);
+        uint _t = t(-2); bytes32 _msgHash = msgHash(_t);
         _verify(msg.sender, ecrecover(_msgHash, v[0], r[0], s[0]), _t);
         _verify(msg.sender, ecrecover(_msgHash, v[1], r[1], s[1]), _t);
     }
-    function massSignature(address[] memory _accounts, bytes32[] memory r, bytes32[] memory s, uint8[] memory v) public {
-        uint _t = t(-2);
-        for(uint i = 0; i< _accounts.length; i++) { _verify(_accounts[i], ecrecover(msgHash(_accounts[i], _t), v[i], r[i], s[i]), _t); }
-    }    
     function claimPersonhood() public {
         uint _t = schedule();
         require(proofOfPersonhood[_t][msg.sender] == 0 && balanceOf[_t][Token.Personhood][msg.sender] >= 1);
