@@ -117,19 +117,16 @@ contract Polytopia {
         return (judgement[_t][_rank][_unit][0] == true && judgement[_t][_rank][_unit][1] == true);
     }
 
-    function _dispute(uint _t, uint _pair) internal {
+    function dispute(bool _premeet) public {
+        uint _t; if(_premeet == true) _t = t(-1); else _t = t(-2);
         require(registry[_t][msg.sender].rank == Rank.Pair);
-        disputed[_t][_pair] = true; 
-    }
-    function dispute() public {
-        uint _t = t(-2);
         uint pair = registry[_t][msg.sender].id/2;
-        require(isVerified(Rank.Pair, pair, _t));
-        _dispute(_t, pair);
+        if(_premeet == false) require(!isVerified(Rank.Pair, pair, _t));
+        disputed[_t][pair] = true; 
     }
-    function premeetDispute() public { uint _t = t(-1); _dispute(_t, registry[_t][msg.sender].id/2); }
-    
-    function _reassign(uint _t) internal {
+
+    function reassign(bool _premeet) internal {
+        uint _t; if(_premeet == true) _t = t(-1); else _t = t(-2);
         require(registry[_t][msg.sender].status == Status.Active);
         uint countPairs = registered[_t][Rank.Pair]/2;
         uint pair = (registry[_t][msg.sender].id/(1+uint(registry[_t][msg.sender].rank)))%countPairs;
@@ -140,8 +137,6 @@ contract Polytopia {
         registry[_t][msg.sender].id = court*i;
         registry[_t][msg.sender].rank = Rank.Court;
     }
-    function reassign() public { _reassign(t(-2)); } function premeetReassign() public { _reassign(t(-1)); }
-
     function completeVerification() public {
         uint _t = t(-2);
         require(registry[_t][msg.sender].status == Status.Active);
