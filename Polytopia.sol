@@ -14,7 +14,7 @@ contract Polytopia {
 
     mapping (uint => uint) public hour;
     uint[] public clockwork;
-    uint clock_nonce;
+    uint public clock_nonce;
 
     function scheduleHour(uint _t) internal {
         if(clock_nonce == 0) clock_nonce = 24;
