@@ -228,8 +228,8 @@ contract Polytopia {
     function unactivatedDispute() public {
         uint _t = t(-1);
         require(registry[_t][msg.sender].status == Status.Commit || registry[_t][msg.sender].status == Status.Vote);
-        registry[_t][msg.sender].rank == Rank.Pair;
-        registry[_t][msg.sender].status == Status.Active;
+        registry[_t][msg.sender].rank = Rank.Pair;
+        registry[_t][msg.sender].status = Status.Active;
         dispute(true);
     }    
 }
