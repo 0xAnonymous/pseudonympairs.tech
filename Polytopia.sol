@@ -20,7 +20,7 @@ contract Polytopia {
         if(clock_nonce == 0) clock_nonce = 24;
         uint _index = seed[_t] % clock_nonce;
         clock_nonce--;
-        hour[_t] = clockwork[_index];
+        hour[_t] = clockwork[_index]*1 hours;
         clockwork[_index] = clockwork[clock_nonce];
         clockwork[clock_nonce] = clock_nonce;
     }
@@ -154,7 +154,7 @@ contract Polytopia {
         registry[_t][msg.sender].status = Status.Verified;
     }
     function _verify(address _account, address _signer, uint _t) internal {
-        inState(hour[_t] * 1 hours, 0, _t);
+        inState(hour[_t], 0, _t);
         require(registry[_t][_signer].rank == Rank.Pair);
         require(_account != _signer);
         Rank rank = registry[_t][_account].rank;
