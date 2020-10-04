@@ -124,7 +124,7 @@ contract Polytopia {
         if(_premeet == false) require(!isVerified(Rank.Pair, pair, _t));
         disputed[_t][pair] = true; 
     }
-    function reassign(bool _premeet) internal {
+    function reassign(bool _premeet) public {
         uint _t; if(_premeet == true) _t = t(-1); else _t = t(-2);
         require(registry[_t][msg.sender].status == Status.Active);
         uint countPairs = registered[_t][Rank.Pair]/2;
@@ -225,12 +225,13 @@ contract Polytopia {
         }
         points[_t][_id]++;
     }
-    function unactivatedDispute() public {
+    function reassignUnactivated() public {
         uint _t = t(-1);
         Status status = registry[_t][msg.sender].status;
         require(status == Status.Commit || status == Status.Vote);
         registry[_t][msg.sender].rank = Rank.Pair;
         registry[_t][msg.sender].status = Status.Active;
         dispute(true);
+        reassign(true);
     }    
 }
