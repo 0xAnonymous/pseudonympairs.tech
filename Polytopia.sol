@@ -154,7 +154,7 @@ contract Polytopia {
         registry[_t][msg.sender].status = Status.Verified;
     }
     function _verify(address _account, address _signer, uint _t) internal {
-        inState(hour[_t]*3600, 0, _t);
+        inState(hour[_t] * 1 hours, 0, _t);
         require(registry[_t][_signer].rank == Rank.Pair);
         require(_account != _signer);
         Rank rank = registry[_t][_account].rank;
@@ -220,7 +220,7 @@ contract Polytopia {
             uint index = leaderboardIndex[_t][_id];
             uint nextSegment = segments[_t][score].end;
             if(nextSegment != index) (leaderboard[_t][nextSegment], leaderboard[_t][index]) = (leaderboard[_t][index], leaderboard[_t][nextSegment]);
-	    if(segments[_t][score].start == nextSegment) { segments[_t][score].start = 0; segments[_t][score].end = 0; }
+	        if(segments[_t][score].start == nextSegment) { segments[_t][score].start = 0; segments[_t][score].end = 0; }
             else segments[_t][score].end--;
             if(segments[_t][score+1].end == 0) segments[_t][score+1].end = nextSegment;
             segments[_t][score+1].start = nextSegment;
