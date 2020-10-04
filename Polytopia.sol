@@ -232,8 +232,8 @@ contract Polytopia {
         Status status = registry[_t][msg.sender].status;
         require(status == Status.Commit || status == Status.Vote);
         registry[_t][msg.sender].rank = Rank.Pair;
-        registry[_t][msg.sender].status = Status.Active;
         dispute(true);
+        registry[_t][msg.sender].status = Status.Active;
         reassign(true);
     }    
 }
