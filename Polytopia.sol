@@ -91,26 +91,26 @@ contract Polytopia {
     }
     function lateShuffle(uint _iterations) public { for (uint i = 0; i < _iterations; i++) _shuffle(t(-1)); }
 
-    function _registration(uint _t, Token _token, Rank _rank) internal {
+    function _registration(uint _t, Token _token, Rank _rank, uint _counter, Status _status) internal {
         inState(0, rngvote, _t);
         require(registry[_t][msg.sender].status == Status.None);
         require(balanceOf[_t][_token][msg.sender] >= 1);
         balanceOf[_t][_token][msg.sender]--;
-        registryIndex[_t][_rank][registered[_t][_rank]] = msg.sender;
+        registryIndex[_t][_rank][_counter] = msg.sender;
         registered[_t][_rank]++;
+        registry[_t][msg.sender].status = _status;
     }
     function register() public {
         uint _t = schedule();
-        _registration(_t, Token.Registration, Rank.Pair);
-        registry[_t][msg.sender].status = Status.Commit;
+        _registration(_t, Token.Registration, Rank.Pair, registered[_t][Rank.Pair], Status.Commit);
         balanceOf[_t+period*2][Token.Immigration][msg.sender]++;
     }
     function immigrate() public {
         uint _t = schedule();
-        registry[_t][msg.sender].id = registered[_t][Rank.Court];
-        balanceOf[_t][Token.Immigration][registryIndex[_t-period*2][Rank.Pair][registered[_t][Rank.Court]%registered[_t-period*2][Rank.Pair]]]++;
-        _registration(_t, Token.Immigration, Rank.Court);
-        registry[_t][msg.sender].status = Status.Active;
+        uint courts = registered[_t][Rank.Court];
+        registry[_t][msg.sender].id = courts;
+        balanceOf[_t][Token.Immigration][registryIndex[_t-period*2][Rank.Pair][courts%registered[_t-period*2][Rank.Pair]]]++;
+        _registration(_t, Token.Immigration, Rank.Court, courts, Status.Active);
     }
     
     function isVerified(Rank _rank, uint _unit, uint _t) public view returns (bool) {
@@ -227,7 +227,8 @@ contract Polytopia {
     }
     function unactivatedDispute() public {
         uint _t = t(-1);
-        require(registry[_t][msg.sender].status == Status.Commit || registry[_t][msg.sender].status == Status.Vote);
+        Status status = registry[_t][msg.sender].status;
+        require(status == Status.Commit || status == Status.Vote);
         registry[_t][msg.sender].rank = Rank.Pair;
         registry[_t][msg.sender].status = Status.Active;
         dispute(true);
