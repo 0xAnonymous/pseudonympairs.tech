@@ -69,12 +69,12 @@ contract Polytopia {
         balanceOf[_t+period][Token.Registration][msg.sender] = 2**256-1;
         balanceOf[_t+period*2][Token.Registration][msg.sender] = 2**256-1;
     }
-    function consultOracle(uint _t) internal {
+    function initializeRandomization(uint _t) internal {
         entropy[_t] = seed[_t] = uint(registryIndex[_t][Rank.Pair][leaderboard[_t][0]]);
         scheduleHour(_t);
     }
     function _shuffle(uint _t) internal {
-        if(shuffled[_t] == 0) consultOracle(_t);
+        if(shuffled[_t] == 0) initializeRandomization(_t);
         uint _shuffled = shuffled[_t];
         uint randomNumber = _shuffled + entropy[_t]%(registered[_t][Rank.Pair] - _shuffled);
         entropy[_t] = uint(keccak256(abi.encodePacked(entropy[_t], registryIndex[_t][Rank.Pair][randomNumber])));
