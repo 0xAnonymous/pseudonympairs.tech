@@ -220,7 +220,7 @@ contract Polytopia {
             uint index = leaderboardIndex[_t][_id];
             uint nextSegment = segments[_t][score].end;
             if(nextSegment != index) (leaderboard[_t][nextSegment], leaderboard[_t][index]) = (leaderboard[_t][index], leaderboard[_t][nextSegment]);
-	        if(segments[_t][score].start == nextSegment) { segments[_t][score].start = 0; segments[_t][score].end = 0; }
+            if(segments[_t][score].start == nextSegment) { segments[_t][score].start = 0; segments[_t][score].end = 0; }
             else segments[_t][score].end--;
             if(segments[_t][score+1].end == 0) segments[_t][score+1].end = nextSegment;
             segments[_t][score+1].start = nextSegment;
