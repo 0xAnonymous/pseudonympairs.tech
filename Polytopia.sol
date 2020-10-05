@@ -145,7 +145,7 @@ contract Polytopia {
         uint pair;
         if(rank == Rank.Court) {
             require(isVerified(Rank.Court, id, _t));
-            pair = id%registered[_t][Rank.Pair]/2;
+            pair = id%(registered[_t][Rank.Pair]/2);
         }
         else pair = id/2;
         require(isVerified(Rank.Pair, pair, _t));
