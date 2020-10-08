@@ -117,7 +117,7 @@ contract Polytopia {
         registry[_t][msg.sender].id = courts;
         registered[_t][Rank.Court]++;
         registry[_t][msg.sender].status = Status.Active;
-        balanceOf[_t][Token.Immigration][registryIndex[_t-period*2][Rank.Pair][courts%registered[_t-period][Rank.Pair]]]++;
+        balanceOf[_t][Token.Immigration][registryIndex[_t-period*2][Rank.Pair][courts%registered[_t-period*2][Rank.Pair]]]++;
     }
     
     function isVerified(Rank _rank, uint _unit, uint _t) public view returns (bool) {
@@ -149,12 +149,11 @@ contract Polytopia {
         Rank rank = registry[_t][msg.sender].rank;
         uint id = registry[_t][msg.sender].id;
         uint pair;
-        if(rank == Rank.Pair) pair = id/2;
-        else if(rank == Rank.Court) {
+        if(rank == Rank.Court) {
             require(isVerified(Rank.Court, id, _t));
             pair = id%(registered[_t][Rank.Pair]/2);
         }
-        else return;
+        else pair = id/2;
         require(isVerified(Rank.Pair, pair, _t));
         balanceOf[_t+period*2][Token.Personhood][msg.sender]++;
         balanceOf[_t+period*2][Token.Registration][msg.sender]++;
