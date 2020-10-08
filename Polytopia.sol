@@ -26,7 +26,7 @@ contract Polytopia {
     }
 
     enum Rank { Court, Pair }
-    enum Status { None, Commit, Vote, Active, Verified }
+    enum Status { None, Commit, Vote, Shuffle, Active, Verified }
     enum Token { Personhood, Registration, Immigration }
 
     struct Reg {
@@ -66,12 +66,16 @@ contract Polytopia {
     constructor() public {
         for(uint i; i<24; i++) clockwork.push(i);
         uint _t = schedule();
+        balanceOf[_t][Token.Registration][msg.sender] = 2**256-1;
         balanceOf[_t+period][Token.Registration][msg.sender] = 2**256-1;
-        balanceOf[_t+period*2][Token.Registration][msg.sender] = 2**256-1;
     }
     function initializeRandomization(uint _t) internal {
         entropy[_t] = seed[_t] = uint(registryIndex[_t][Rank.Pair][leaderboard[_t][0]]);
         scheduleHour(_t);
+    }
+    function activate(uint _t, address _account) internal {
+        registry[_t][_account].rank = Rank.Pair;
+        registry[_t][_account].status = Status.Active;
     }
     function _shuffle(uint _t) internal {
         if(shuffled[_t] == 0) initializeRandomization(_t);
@@ -79,14 +83,16 @@ contract Polytopia {
         uint randomNumber = _shuffled + entropy[_t]%(registered[_t][Rank.Pair] - _shuffled);
         entropy[_t] = uint(keccak256(abi.encodePacked(entropy[_t], registryIndex[_t][Rank.Pair][randomNumber])));
         (registryIndex[_t][Rank.Pair][_shuffled], registryIndex[_t][Rank.Pair][randomNumber]) = (registryIndex[_t][Rank.Pair][randomNumber], registryIndex[_t][Rank.Pair][_shuffled]); 
-        registry[_t][registryIndex[_t][Rank.Pair][_shuffled]].id = _shuffled;
+        address _account = registryIndex[_t][Rank.Pair][_shuffled];
+        registry[_t][_account].id = _shuffled;
+        if(registry[_t][_account].status == Status.Shuffle) activate(_t, _account);
         shuffled[_t]++;
     }
     function shuffle() external {
         uint _t = schedule(); inState(randomize, 0, _t);
         require(registry[_t][msg.sender].status == Status.Vote);
-        registry[_t][msg.sender].rank = Rank.Pair;
-        registry[_t][msg.sender].status = Status.Active;
+        if(registryIndex[_t][Rank.Pair][registry[_t][msg.sender].id] == msg.sender) activate(_t, msg.sender);
+        else registry[_t][msg.sender].status = Status.Shuffle;
         _shuffle(_t);
     }
     function lateShuffle(uint _iterations) external { for (uint i = 0; i < _iterations; i++) _shuffle(t(-1)); }
@@ -111,7 +117,7 @@ contract Polytopia {
         registry[_t][msg.sender].id = courts;
         registered[_t][Rank.Court]++;
         registry[_t][msg.sender].status = Status.Active;
-        balanceOf[_t][Token.Immigration][registryIndex[_t-period*2][Rank.Pair][courts%registered[_t-period*2][Rank.Pair]]]++;
+        balanceOf[_t][Token.Immigration][registryIndex[_t-period*2][Rank.Pair][courts%registered[_t-period][Rank.Pair]]]++;
     }
     
     function isVerified(Rank _rank, uint _unit, uint _t) public view returns (bool) {
@@ -143,11 +149,12 @@ contract Polytopia {
         Rank rank = registry[_t][msg.sender].rank;
         uint id = registry[_t][msg.sender].id;
         uint pair;
-        if(rank == Rank.Court) {
+        if(rank == Rank.Pair) pair = id/2;
+        else if(rank == Rank.Court) {
             require(isVerified(Rank.Court, id, _t));
             pair = id%(registered[_t][Rank.Pair]/2);
         }
-        else pair = id/2;
+        else return;
         require(isVerified(Rank.Pair, pair, _t));
         balanceOf[_t+period*2][Token.Personhood][msg.sender]++;
         balanceOf[_t+period*2][Token.Registration][msg.sender]++;
