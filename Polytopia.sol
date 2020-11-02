@@ -12,9 +12,14 @@ contract Polytopia {
 
     uint entropy;
 
+    function initializeRandomization() internal {
+        entropy = uint(blockhash(block.number-1));
+        hour = (entropy%24)*1 hours;
+    }
+
     enum Rank { Court, Pair }
 
-    enum Token { Personhood, Registration, Immigration, Verified }
+    enum Token { Personhood, Registration, Immigration }
 
     struct Reg {
         Rank rank;
@@ -42,36 +47,12 @@ contract Polytopia {
     }
 
     constructor() public {
-        address genesisAccount;
-        uint genesisPopulation;
+        address genesisAccount = 0xDb93d1a5e7A8D998FfAfd746471E4f3F3c8C1308;
+        uint genesisPopulation = 2;
         balanceOf[schedule()][Token.Registration][genesisAccount] = genesisPopulation;
+        balanceOf[schedule()][Token.Immigration][genesisAccount] = genesisPopulation;
     }
 
-    function initializeRandomization() internal {
-        entropy = uint(blockhash(block.number-1));
-        hour = (entropy%24)*1 hours;
-    }
-    function _shuffle(uint _t) internal {
-        if(shuffled[_t] == 0) initializeRandomization();
-        shuffled[_t]++;
-        uint _shuffled = shuffled[_t];
-        uint randomNumber = _shuffled + entropy%(registered[_t][Rank.Pair] + 1 - _shuffled);
-        entropy = uint(keccak256(abi.encodePacked(entropy, registryIndex[_t][Rank.Pair][randomNumber])));
-        (registryIndex[_t][Rank.Pair][_shuffled], registryIndex[_t][Rank.Pair][randomNumber]) = (registryIndex[_t][Rank.Pair][randomNumber], registryIndex[_t][Rank.Pair][_shuffled]); 
-        registry[_t][registryIndex[_t][Rank.Pair][_shuffled]].id = _shuffled;
-    }
-    function shuffle() external {
-        uint t = schedule(); 
-        require(inState(randomize, premeet, t));
-        require(registry[t][msg.sender].rank == Rank.Pair && committed[t][msg.sender] == false);
-        committed[t][msg.sender] = true;
-        _shuffle(t);
-    }
-    function lateShuffle(uint _iterations) external { 
-        uint t = schedule();
-        require(inState(premeet, 0, t));
-        for (uint i = 0; i < _iterations; i++) _shuffle(t); 
-    }
     function _register(Rank _rank) internal {
         uint t = schedule();
         require(inState(0, randomize, t));
@@ -86,7 +67,30 @@ contract Polytopia {
     }
     function register() external { _register(Rank.Pair); }
     function immigrate() external { _register(Rank.Court); }
-    
+
+    function _shuffle(uint _t) internal {
+        if(shuffled[_t] == 0) initializeRandomization();
+        shuffled[_t]++;
+        uint _shuffled = shuffled[_t];
+        uint randomNumber = _shuffled + entropy%(registered[_t][Rank.Pair] + 1 - _shuffled);
+        entropy = uint(keccak256(abi.encodePacked(entropy, registryIndex[_t][Rank.Pair][randomNumber])));
+        (registryIndex[_t][Rank.Pair][_shuffled], registryIndex[_t][Rank.Pair][randomNumber]) =
+        (registryIndex[_t][Rank.Pair][randomNumber], registryIndex[_t][Rank.Pair][_shuffled]); 
+        registry[_t][registryIndex[_t][Rank.Pair][_shuffled]].id = _shuffled;
+    }
+    function shuffle() external {
+        uint t = schedule(); 
+        require(inState(randomize, premeet, t));
+        require(registry[t][msg.sender].rank == Rank.Pair && committed[t][msg.sender] == false);
+        committed[t][msg.sender] = true;
+        _shuffle(t);
+    }
+    function lateShuffle(uint _iterations) external { 
+        uint t = schedule();
+        require(inState(premeet, 0, t));
+        for (uint i = 0; i < _iterations; i++) _shuffle(t); 
+    }
+
     function isVerified(Rank _rank, uint _unit, uint t) public view returns (bool) {
         return (judgement[t][_rank][_unit][0] == true && judgement[t][_rank][_unit][1] == true);
     }
@@ -160,16 +164,10 @@ contract Polytopia {
         }
         else pair = (id + 1) /2;
         require(isVerified(Rank.Pair, pair, t));
-        balanceOf[t+period][Token.Verified][msg.sender]++;
+        balanceOf[t+period][Token.Personhood][msg.sender]++;
+        balanceOf[t+period][Token.Registration][msg.sender]++;
+        balanceOf[t+period][Token.Immigration][msg.sender]++;        
         registry[t][msg.sender].verified = true;
-    }
-    function collectTokens() external {
-        uint t = schedule();
-        require(balanceOf[t][Token.Verified][msg.sender] >= 1);
-        balanceOf[t][Token.Verified][msg.sender]--;
-        balanceOf[t][Token.Personhood][msg.sender]++;
-        balanceOf[t][Token.Registration][msg.sender]++;
-        balanceOf[t][Token.Immigration][msg.sender]++;
     }
     function claimPersonhood() external {
         uint t = schedule();
@@ -179,6 +177,7 @@ contract Polytopia {
         proofOfPersonhood[t][msg.sender] = population[t];
         personhoodIndex[t][population[t]] = msg.sender;
     }
+
     function _transfer(uint _t, address _from, address _to, uint _value, Token _token) internal { 
         require(balanceOf[_t][_token][_from] >= _value);
         balanceOf[_t][_token][_from] -= _value;
