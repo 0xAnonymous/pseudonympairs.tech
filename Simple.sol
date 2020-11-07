@@ -52,8 +52,8 @@ contract OnlinePseudonymParties {
         registry[t][msg.sender].id = 1 + getRandomNumber()%(2**256-1);
     }
 
-    function isVerified(Rank _rank, uint _unit, uint t) public view returns (bool) {
-        return (judgement[t][_rank][_unit][0] == true && judgement[t][_rank][_unit][1] == true);
+    function isVerified(Rank _rank, uint _unit, uint _t) public view returns (bool) {
+        return (judgement[_t][_rank][_unit][0] == true && judgement[_t][_rank][_unit][1] == true);
     }
 
     function dispute() external {
@@ -134,7 +134,7 @@ contract OnlinePseudonymParties {
         _transfer(t, _from, _to, _value, _token);
         allowed[t][_token][_from][msg.sender] -= _value;
     }
-    
+
     function initialize() external {
         uint t = schedule();
         require(shuffler[t-period].length<2);
