@@ -1,13 +1,12 @@
 contract OnlinePseudonymParties {
 
     uint entropy;
-    
+
     function getRandomNumber() internal returns (uint){ return entropy = uint(keccak256(abi.encodePacked(blockhash(block.number - 1), entropy))); }
 
-    uint constant public genesis = 198000;
     uint constant public period = 4 weeks;
 
-    function schedule() public view returns (uint) { return genesis + ((block.timestamp - genesis) / period) * period; }
+    function schedule() public view returns (uint) { return 198000 + ((block.timestamp - 198000) / period) * period; }
 
     enum Rank { Court, Pair }
 
@@ -32,6 +31,7 @@ contract OnlinePseudonymParties {
 
     function register() public {
         uint t = schedule();
+        require(block.timestamp < t + 2 weeks);
         require(registry[t][msg.sender].id == 0 && balanceOf[t][Token.Registration][msg.sender] >= 1);
         balanceOf[t][Token.Registration][msg.sender]--;
         uint id = 1;
@@ -56,22 +56,26 @@ contract OnlinePseudonymParties {
         return (judgement[_t][_rank][_unit][0] == true && judgement[_t][_rank][_unit][1] == true);
     }
 
-    function dispute() external {
-        uint t = schedule()-period;
+    function dispute(bool _early) external {
+        uint t = schedule();
+        if(_early != true) t -= period;
+        else require(block.timestamp > t + 2 weeks);
         require(registry[t][msg.sender].rank == Rank.Pair);
         uint id = registry[t][msg.sender].id;
         uint pair = (id+1)/2;
-        require(!isVerified(Rank.Pair, pair, t));
+        if(_early == false) require(!isVerified(Rank.Pair, pair, t));
         disputed[t][pair] = true;
     }
-    function reassign() external {
-        uint t = schedule()-period;
+    function reassign(bool _early) external {
+        uint t = schedule();
+        if(_early != true) t -= period;
         uint id = registry[t][msg.sender].id;
         uint pair = 1 + ((id - 1)/(uint(registry[t][msg.sender].rank) + 1))%shuffler[t].length/2;
         require(disputed[t][pair] == true);
         delete registry[t][msg.sender];
         registry[t][msg.sender].id = 1 + getRandomNumber()%(2**256-1);
     }
+    
     function _verify(address _account, address _signer, uint _t) internal {
         require(block.timestamp > _t + (uint(keccak256(abi.encode(_t)))%24) * 1 hours);
         require(registry[_t][_signer].rank == Rank.Pair && _account != _signer);
@@ -135,11 +139,19 @@ contract OnlinePseudonymParties {
         allowed[t][_token][_from][msg.sender] -= _value;
     }
 
-    function initialize() external {
+    function initialize() external returns (bool) {
         uint t = schedule();
-        require(shuffler[t-period].length<2);
-        require(shuffler[t].length<2);
+        if(shuffler[t-period].length>=2) return false;
+        if(shuffler[t].length>=2) return false;
         balanceOf[t][Token.Registration][msg.sender]++;
         register();
+        return true;
     }    
+}
+
+contract Factory {
+
+    function newContract() external {
+        new OnlinePseudonymParties();
+    }
 }
