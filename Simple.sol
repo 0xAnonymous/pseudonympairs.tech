@@ -58,8 +58,8 @@ contract OnlinePseudonymParties {
 
     function dispute(bool _early) external {
         uint t = schedule();
-        if(_early != true) t -= period;
-        else require(block.timestamp > t + 2 weeks);
+        if(_early == true) require(block.timestamp > t + 2 weeks);
+        else t -= period;
         require(registry[t][msg.sender].rank == Rank.Pair);
         uint id = registry[t][msg.sender].id;
         uint pair = (id+1)/2;
