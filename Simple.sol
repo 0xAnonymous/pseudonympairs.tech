@@ -29,16 +29,18 @@ contract OnlinePseudonymParties {
     mapping (uint => mapping (Token => mapping (address => uint))) public balanceOf;
     mapping (uint => mapping (Token => mapping (address => mapping (address => uint)))) public allowed;
 
+    function registered(uint _t) public view returns (uint) { return shuffler[_t].length; }
+
     function register() public {
         uint t = schedule();
         require(block.timestamp < t + 2 weeks);
         require(registry[t][msg.sender].id == 0 && balanceOf[t][Token.Registration][msg.sender] >= 1);
         balanceOf[t][Token.Registration][msg.sender]--;
         uint id = 1;
-        if(shuffler[t].length != 0) {
-            id += getRandomNumber() % shuffler[t].length;
+        if(registered(t) != 0) {
+            id += getRandomNumber() % registered(t);
             shuffler[t].push(shuffler[t][id-1]);
-            registry[t][shuffler[t][id-1]].id = shuffler[t].length;
+            registry[t][shuffler[t][id-1]].id = registered(t);
         }
         else shuffler[t].push();
 
@@ -70,7 +72,7 @@ contract OnlinePseudonymParties {
         uint t = schedule();
         if(_early != true) t -= period;
         uint id = registry[t][msg.sender].id;
-        uint pair = 1 + ((id - 1)/(uint(registry[t][msg.sender].rank) + 1))%shuffler[t].length/2;
+        uint pair = 1 + ((id - 1)/(uint(registry[t][msg.sender].rank) + 1))%registered(t)/2;
         require(disputed[t][pair] == true);
         delete registry[t][msg.sender];
         registry[t][msg.sender].id = 1 + getRandomNumber()%(2**256-1);
@@ -82,7 +84,7 @@ contract OnlinePseudonymParties {
         Rank rank = registry[_t][_account].rank;
         uint temp = (registry[_t][_account].id-1)/(1 + uint(rank));
         uint unit = 1 + temp;
-        uint pair = 1 + temp%shuffler[_t].length/2;
+        uint pair = 1 + temp%registered(_t)/2;
         require(disputed[_t][pair] == false);
         uint peer = registry[_t][_signer].id;
         require(pair == (peer+1)/2);
@@ -104,7 +106,7 @@ contract OnlinePseudonymParties {
         uint pair;
         if(registry[t][msg.sender].rank == Rank.Court) {
             require(isVerified(Rank.Court, id, t));
-            pair = 1 + (id - 1)%shuffler[t].length/2;
+            pair = 1 + (id - 1)%registered(t)/2;
         }
         else pair = (id + 1) /2;
         require(isVerified(Rank.Pair, pair, t));
@@ -139,13 +141,11 @@ contract OnlinePseudonymParties {
         allowed[t][_token][_from][msg.sender] -= _value;
     }
 
-    function initialize() external returns (bool) {
+    function initialize() external {
         uint t = schedule();
-        if(shuffler[t-period].length>=2) return false;
-        if(shuffler[t].length>=2) return false;
+        require(registered(t-period) < 2 && registered(t) < 2);
         balanceOf[t][Token.Registration][msg.sender]++;
         register();
-        return true;
     }    
 }
 
