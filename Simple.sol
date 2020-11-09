@@ -75,9 +75,9 @@ contract OnlinePseudonymParties {
         uint pair = 1 + ((id - 1)/(uint(registry[t][msg.sender].rank) + 1))%registered(t)/2;
         require(disputed[t][pair] == true);
         delete registry[t][msg.sender];
-        registry[t][msg.sender].id = 1 + getRandomNumber()%(2**256-1);
+        registry[t][msg.sender].id = 1 + uint(keccak256(abi.encodePacked(msg.sender, pair)))%(2**256-1);
     }
-    
+
     function _verify(address _account, address _signer, uint _t) internal {
         require(block.timestamp > _t + (uint(keccak256(abi.encode(_t)))%24) * 1 hours);
         require(registry[_t][_signer].rank == Rank.Pair && _account != _signer);
@@ -146,7 +146,7 @@ contract OnlinePseudonymParties {
         require(registered(t-period) < 2 && registered(t) < 2);
         balanceOf[t][Token.Registration][msg.sender]++;
         register();
-    }    
+    }
 }
 
 contract Factory {
